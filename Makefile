@@ -44,7 +44,7 @@ out:
 	mkdir -p out
 
 install:
-	install -Dm755 out/wlrgammasvc $(INSTALL_PATH)/bin/wlrgammasvc
+	install -Dm755 out/wlr-gamma-service $(INSTALL_PATH)/bin/wlr-gamma-service
 
 clean:
 	rm -rf out gen
