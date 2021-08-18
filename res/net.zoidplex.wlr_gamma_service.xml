@@ -1,34 +1,36 @@
 <node>
-	<interface name="net.zoidplex.wlr_gamma_service">
-		<method name="get_brightness">
-			<arg name="current_brightness" direction="out" type="d"/>
+	<interface name="net.zoidplex.wlr_gamma_service.brightness">
+		<method name="get">
+			<arg name="current_value" direction="out" type="d"/>
 		</method>
-		<method name="set_brightness">
+		<method name="set">
 			<arg name="value" direction="in" type="d"/>
-			<arg name="current_brightness" direction="out" type="d"/>
+			<arg name="current_value" direction="out" type="d"/>
 		</method>
-		<method name="increase_brightness">
+		<method name="increase">
 			<arg name="value" direction="in" type="d"/>
-			<arg name="current_brightness" direction="out" type="d"/>
+			<arg name="current_value" direction="out" type="d"/>
 		</method>
-		<method name="decrease_brightness">
+		<method name="decrease">
 			<arg name="value" direction="in" type="d"/>
-			<arg name="current_brightness" direction="out" type="d"/>
+			<arg name="current_value" direction="out" type="d"/>
 		</method>
-		<method name="get_temperature">
-                        <arg name="current_temperature" direction="out" type="i"/>
+	</interface>
+	<interface name="net.zoidplex.wlr_gamma_service.temperature">
+		<method name="get">
+                        <arg name="current_value" direction="out" type="i"/>
                 </method>
-                <method name="set_temperature">
+                <method name="set">
                         <arg name="value" direction="in" type="i"/>
-                        <arg name="current_temperature" direction="out" type="i"/>
+                        <arg name="current_value" direction="out" type="i"/>
                 </method>
-                <method name="increase_temperature">
+                <method name="increase">
                         <arg name="value" direction="in" type="i"/>
-                        <arg name="current_temperature" direction="out" type="i"/>
+                        <arg name="current_value" direction="out" type="i"/>
                 </method>
-                <method name="decrease_temperature">
+                <method name="decrease">
                         <arg name="value" direction="in" type="i"/>
-                        <arg name="current_temperature" direction="out" type="i"/>
+                        <arg name="current_value" direction="out" type="i"/>
                 </method>
 	</interface>
 </node>

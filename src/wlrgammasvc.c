@@ -150,6 +150,15 @@ set_gamma(double new_brightness, int new_temp)
     new_brightness = 0.0;
   }
 
+  if(new_temp > 16000)
+  {
+    new_temp = 16000;
+  }
+  if(new_temp < 1600)
+  {
+    new_temp = 1600;
+  }
+
 	  struct output *output;
     wl_list_for_each(output, &outputs, link) {
       output->table_fd = create_gamma_table(output->ramp_size, &output->table);
@@ -164,92 +173,97 @@ set_gamma(double new_brightness, int new_temp)
 }
 
 static gboolean
-on_handle_increase_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+on_handle_increase_brightness (WlrGammaSvcBusBrightness *interface, GDBusMethodInvocation *invocation,
 					const gdouble value, gpointer user_data)
 {
   set_gamma(current_brightness + value, current_temp);
-	wlr_gamma_svc_bus_wlr_gamma_service_complete_increase_brightness (interface, invocation, current_brightness);
+	wlr_gamma_svc_bus_brightness_complete_increase (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_decrease_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+on_handle_decrease_brightness (WlrGammaSvcBusBrightness *interface, GDBusMethodInvocation *invocation,
 					const gdouble value, gpointer user_data)
 {
   set_gamma(current_brightness - value, current_temp);
-	wlr_gamma_svc_bus_wlr_gamma_service_complete_decrease_brightness (interface, invocation, current_brightness);
+	wlr_gamma_svc_bus_brightness_complete_decrease (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_set_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+on_handle_set_brightness (WlrGammaSvcBusBrightness *interface, GDBusMethodInvocation *invocation,
 					const gdouble value, gpointer user_data)
 {
   set_gamma(value, current_temp);
-	wlr_gamma_svc_bus_wlr_gamma_service_complete_get_brightness (interface, invocation, current_brightness);
+	wlr_gamma_svc_bus_brightness_complete_set (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_get_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,	gpointer user_data)
+on_handle_get_brightness (WlrGammaSvcBusBrightness *interface, GDBusMethodInvocation *invocation,	gpointer user_data)
 {
-	wlr_gamma_svc_bus_wlr_gamma_service_complete_get_brightness (interface, invocation, current_brightness);
+	wlr_gamma_svc_bus_brightness_complete_get (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_increase_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+on_handle_increase_temperature (WlrGammaSvcBusTemperature *interface, GDBusMethodInvocation *invocation,
                                         const gint value, gpointer user_data)
 {
   set_gamma(current_brightness, current_temp + value);
-        wlr_gamma_svc_bus_wlr_gamma_service_complete_increase_temperature (interface, invocation, current_temp);
+        wlr_gamma_svc_bus_temperature_complete_increase (interface, invocation, current_temp);
         return TRUE;
 }
 
 static gboolean
-on_handle_decrease_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+on_handle_decrease_temperature (WlrGammaSvcBusTemperature *interface, GDBusMethodInvocation *invocation,
                                         const gint value, gpointer user_data)
 {
   set_gamma(current_brightness, current_temp - value);
-        wlr_gamma_svc_bus_wlr_gamma_service_complete_decrease_temperature (interface, invocation, current_temp);
+        wlr_gamma_svc_bus_temperature_complete_decrease (interface, invocation, current_temp);
         return TRUE;
 }
 
 static gboolean
-on_handle_set_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *
+on_handle_set_temperature (WlrGammaSvcBusTemperature *interface, GDBusMethodInvocation *
 invocation,
                                         const gint value, gpointer user_data)
 {
   set_gamma(current_brightness, value);
-        wlr_gamma_svc_bus_wlr_gamma_service_complete_set_temperature (interface, invocation, current_temp);
+        wlr_gamma_svc_bus_temperature_complete_set (interface, invocation, current_temp);
         return TRUE;
 }
 
 static gboolean
-on_handle_get_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *
+on_handle_get_temperature (WlrGammaSvcBusTemperature *interface, GDBusMethodInvocation *
 invocation,  gpointer user_data)
 {
-        wlr_gamma_svc_bus_wlr_gamma_service_complete_get_temperature (interface, invocation, current_temp);
+        wlr_gamma_svc_bus_temperature_complete_get (interface, invocation, current_temp);
         return TRUE;
 }
 
 static void
 on_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
-	WlrGammaSvcBusWlr_gamma_service *interface;
+	WlrGammaSvcBusBrightness *brightness_interface;
+	WlrGammaSvcBusTemperature *temperature_interface;
 	GError *error;
 
-	interface = wlr_gamma_svc_bus_wlr_gamma_service_skeleton_new();
-	g_signal_connect (interface, "handle-get-brightness", G_CALLBACK (on_handle_get_brightness), NULL);
-	g_signal_connect (interface, "handle-set-brightness", G_CALLBACK (on_handle_set_brightness), NULL);
-	g_signal_connect (interface, "handle-increase-brightness", G_CALLBACK (on_handle_increase_brightness), NULL);
-	g_signal_connect (interface, "handle-decrease-brightness", G_CALLBACK (on_handle_decrease_brightness), NULL);
-	g_signal_connect (interface, "handle-get-temperature", G_CALLBACK (on_handle_get_temperature), NULL);
-        g_signal_connect (interface, "handle-set-temperature", G_CALLBACK (on_handle_set_temperature), NULL);
-        g_signal_connect (interface, "handle-increase-temperature", G_CALLBACK (on_handle_increase_temperature), NULL);
-        g_signal_connect (interface, "handle-decrease-temperature", G_CALLBACK (on_handle_decrease_temperature), NULL);
+	brightness_interface = wlr_gamma_svc_bus_brightness_skeleton_new();
+	g_signal_connect (brightness_interface, "handle-get", G_CALLBACK (on_handle_get_brightness), NULL);
+	g_signal_connect (brightness_interface, "handle-set", G_CALLBACK (on_handle_set_brightness), NULL);
+	g_signal_connect (brightness_interface, "handle-increase", G_CALLBACK (on_handle_increase_brightness), NULL);
+	g_signal_connect (brightness_interface, "handle-decrease", G_CALLBACK (on_handle_decrease_brightness), NULL);
 	error = NULL;
-	!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (interface), connection, "/net/zoidplex/wlr_gamma_service", &error);
+	!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (brightness_interface), connection, "/net/zoidplex/wlr_gamma_service", &error);
+
+	temperature_interface = wlr_gamma_svc_bus_temperature_skeleton_new();
+	g_signal_connect (temperature_interface, "handle-get", G_CALLBACK (on_handle_get_temperature), NULL);
+        g_signal_connect (temperature_interface, "handle-set", G_CALLBACK (on_handle_set_temperature), NULL);
+        g_signal_connect (temperature_interface, "handle-increase", G_CALLBACK (on_handle_increase_temperature), NULL);
+        g_signal_connect (temperature_interface, "handle-decrease", G_CALLBACK (on_handle_decrease_temperature), NULL);
+	error = NULL;
+	!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (temperature_interface), connection, "/net/zoidplex/wlr_gamma_service", &error);
 }
 
 int main(int argc, char *argv[]) {
@@ -285,7 +299,7 @@ int main(int argc, char *argv[]) {
 	GMainLoop *loop;
 	loop = g_main_loop_new (NULL, FALSE);
 
-	g_bus_own_name(G_BUS_TYPE_SESSION, "net.zoidplex", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
+	g_bus_own_name(G_BUS_TYPE_SESSION, "net.zoidplex.wlr_gamma_service", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
 				on_name_acquired, NULL, NULL, NULL);
 
 	g_main_loop_run (loop);
