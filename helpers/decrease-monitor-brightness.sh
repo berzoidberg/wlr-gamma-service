@@ -1,1 +1,1 @@
-gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net.zoidplex.wlr_gamma_service.brightness.brightness.-m net.zoidplex.wlr_gamma_service.brightness.brightness.decrease 0.01 | cut -d "(" -f2 | cut -d "," -f1 | awk '{print $1*100}' > $SWAYSOCK.wob
+gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.brightness.decrease 0.01 | cut -d "(" -f2 | cut -d "," -f1 | awk '{print $1*100}' > $SWAYSOCK.wob
