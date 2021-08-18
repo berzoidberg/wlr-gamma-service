@@ -34,7 +34,7 @@ gen/wlr-gamma-control-unstable-v1-client-protocol.c: gen
 
 gen/wlrgammasvcbus.c gen/wlrgammasvcbus.h: gen
 	gdbus-codegen --output-directory gen --generate-c-code wlrgammasvcbus \
-		--c-namespace WlrGammaSvcBus --interface-prefix net.zoidplex. \
+		--c-namespace WlrGammaSvcBus --interface-prefix net.zoidplex.wlr_gamma_service \
 		res/net.zoidplex.wlr_gamma_service.xml
 
 gen:
