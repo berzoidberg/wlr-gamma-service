@@ -4,7 +4,7 @@ PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=wlr-brightness
+ExecStart=wlrgammasvc
 
 [Install]
 WantedBy=graphical-session.target

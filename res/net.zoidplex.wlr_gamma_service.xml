@@ -1,0 +1,34 @@
+<node>
+	<interface name="net.zoidplex.wlr_gamma_service">
+		<method name="get_brightness">
+			<arg name="current_brightness" direction="out" type="d"/>
+		</method>
+		<method name="set_brightness">
+			<arg name="value" direction="in" type="d"/>
+			<arg name="current_brightness" direction="out" type="d"/>
+		</method>
+		<method name="increase_brightness">
+			<arg name="value" direction="in" type="d"/>
+			<arg name="current_brightness" direction="out" type="d"/>
+		</method>
+		<method name="decrease_brightness">
+			<arg name="value" direction="in" type="d"/>
+			<arg name="current_brightness" direction="out" type="d"/>
+		</method>
+		<method name="get_temperature">
+                        <arg name="current_temperature" direction="out" type="i"/>
+                </method>
+                <method name="set_temperature">
+                        <arg name="value" direction="in" type="i"/>
+                        <arg name="current_temperature" direction="out" type="i"/>
+                </method>
+                <method name="increase_temperature">
+                        <arg name="value" direction="in" type="i"/>
+                        <arg name="current_temperature" direction="out" type="i"/>
+                </method>
+                <method name="decrease_temperature">
+                        <arg name="value" direction="in" type="i"/>
+                        <arg name="current_temperature" direction="out" type="i"/>
+                </method>
+	</interface>
+</node>

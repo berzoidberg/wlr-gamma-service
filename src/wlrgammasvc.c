@@ -11,7 +11,8 @@
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 #include "gen/wlr-gamma-control-unstable-v1-client-protocol.h"
-#include "gen/wlrbrightnessbus.h"
+#include "gen/wlrgammasvcbus.h"
+#include "color_math.h"
 
 struct output {
 	struct wl_output *wl_output;
@@ -25,6 +26,7 @@ struct output {
 static struct wl_list outputs;
 static struct zwlr_gamma_control_manager_v1 *gamma_control_manager = NULL;
 static struct wl_display *display;
+static double current_temp = 6500;
 static double current_brightness = 1.0;
 
 static int create_anonymous_file(off_t size) {
@@ -113,7 +115,9 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 static void fill_gamma_table(uint16_t *table, uint32_t ramp_size,
-		double brightness) {
+		double brightness, int temp) {
+	double rw, gw, bw;
+	calc_whitepoint(temp, &rw, &gw, &bw);
 	uint16_t *r = table;
 	uint16_t *g = table + ramp_size;
 	uint16_t *b = table + 2 * ramp_size;
@@ -128,12 +132,14 @@ static void fill_gamma_table(uint16_t *table, uint32_t ramp_size,
 		} else if (val < 0.0) {
 			val = 0.0;
 		}
-		r[i] = g[i] = b[i] = (uint16_t)(UINT16_MAX * val);
+		r[i] = (uint16_t)(UINT16_MAX * val * rw);
+		g[i] = (uint16_t)(UINT16_MAX * val * gw);
+		b[i] = (uint16_t)(UINT16_MAX * val * bw);
 	}
 }
 
 static void
-set_brightness(double new_brightness)
+set_gamma(double new_brightness, int new_temp)
 {
   if(new_brightness > 1.0)
   {
@@ -144,80 +150,106 @@ set_brightness(double new_brightness)
     new_brightness = 0.0;
   }
 
-  struct timespec tim, tim2;
-  tim.tv_sec = 0;
-  tim.tv_nsec = 0.02 * 1000 * 1000 * 1000;
-
-  double delta = (new_brightness - current_brightness) / 10.0;
-
-  for(int i = 0; i < 10; ++i)
-  {
-    if(nanosleep(&tim , &tim2) < 0 )
-    {
-       printf("Nano sleep system call failed \n");
-       return;
-    }
-    current_brightness += delta;
 	  struct output *output;
     wl_list_for_each(output, &outputs, link) {
       output->table_fd = create_gamma_table(output->ramp_size, &output->table);
       fill_gamma_table(output->table, output->ramp_size,
-         current_brightness);
+         new_brightness, new_temp);
       zwlr_gamma_control_v1_set_gamma(output->gamma_control,
         output->table_fd);
     }
     wl_display_flush(display);
-  }
   current_brightness = new_brightness;
+  current_temp = new_temp;
 }
 
 static gboolean
-on_handle_increase (WlrBrightnessBusWlrbrightness *interface, GDBusMethodInvocation *invocation,
+on_handle_increase_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
 					const gdouble value, gpointer user_data)
 {
-  set_brightness(current_brightness + value);
-	wlr_brightness_bus_wlrbrightness_complete_increase (interface, invocation, current_brightness);
+  set_gamma(current_brightness + value, current_temp);
+	wlr_gamma_svc_bus_wlr_gamma_service_complete_increase_brightness (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_decrease (WlrBrightnessBusWlrbrightness *interface, GDBusMethodInvocation *invocation,
+on_handle_decrease_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
 					const gdouble value, gpointer user_data)
 {
-  set_brightness(current_brightness - value);
-	wlr_brightness_bus_wlrbrightness_complete_decrease (interface, invocation, current_brightness);
+  set_gamma(current_brightness - value, current_temp);
+	wlr_gamma_svc_bus_wlr_gamma_service_complete_decrease_brightness (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_set (WlrBrightnessBusWlrbrightness *interface, GDBusMethodInvocation *invocation,
+on_handle_set_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
 					const gdouble value, gpointer user_data)
 {
-  set_brightness(value);
-	wlr_brightness_bus_wlrbrightness_complete_get (interface, invocation, current_brightness);
+  set_gamma(value, current_temp);
+	wlr_gamma_svc_bus_wlr_gamma_service_complete_get_brightness (interface, invocation, current_brightness);
 	return TRUE;
 }
 
 static gboolean
-on_handle_get (WlrBrightnessBusWlrbrightness *interface, GDBusMethodInvocation *invocation,	gpointer user_data)
+on_handle_get_brightness (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,	gpointer user_data)
 {
-	wlr_brightness_bus_wlrbrightness_complete_get (interface, invocation, current_brightness);
+	wlr_gamma_svc_bus_wlr_gamma_service_complete_get_brightness (interface, invocation, current_brightness);
 	return TRUE;
+}
+
+static gboolean
+on_handle_increase_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+                                        const gint value, gpointer user_data)
+{
+  set_gamma(current_brightness, current_temp + value);
+        wlr_gamma_svc_bus_wlr_gamma_service_complete_increase_temperature (interface, invocation, current_temp);
+        return TRUE;
+}
+
+static gboolean
+on_handle_decrease_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *invocation,
+                                        const gint value, gpointer user_data)
+{
+  set_gamma(current_brightness, current_temp - value);
+        wlr_gamma_svc_bus_wlr_gamma_service_complete_decrease_temperature (interface, invocation, current_temp);
+        return TRUE;
+}
+
+static gboolean
+on_handle_set_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *
+invocation,
+                                        const gint value, gpointer user_data)
+{
+  set_gamma(current_brightness, value);
+        wlr_gamma_svc_bus_wlr_gamma_service_complete_set_temperature (interface, invocation, current_temp);
+        return TRUE;
+}
+
+static gboolean
+on_handle_get_temperature (WlrGammaSvcBusWlr_gamma_service *interface, GDBusMethodInvocation *
+invocation,  gpointer user_data)
+{
+        wlr_gamma_svc_bus_wlr_gamma_service_complete_get_temperature (interface, invocation, current_temp);
+        return TRUE;
 }
 
 static void
 on_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
-	WlrBrightnessBusWlrbrightness *interface;
+	WlrGammaSvcBusWlr_gamma_service *interface;
 	GError *error;
 
-	interface = wlr_brightness_bus_wlrbrightness_skeleton_new();
-	g_signal_connect (interface, "handle-get", G_CALLBACK (on_handle_get), NULL);
-	g_signal_connect (interface, "handle-set", G_CALLBACK (on_handle_set), NULL);
-	g_signal_connect (interface, "handle-increase", G_CALLBACK (on_handle_increase), NULL);
-	g_signal_connect (interface, "handle-decrease", G_CALLBACK (on_handle_decrease), NULL);
+	interface = wlr_gamma_svc_bus_wlr_gamma_service_skeleton_new();
+	g_signal_connect (interface, "handle-get-brightness", G_CALLBACK (on_handle_get_brightness), NULL);
+	g_signal_connect (interface, "handle-set-brightness", G_CALLBACK (on_handle_set_brightness), NULL);
+	g_signal_connect (interface, "handle-increase-brightness", G_CALLBACK (on_handle_increase_brightness), NULL);
+	g_signal_connect (interface, "handle-decrease-brightness", G_CALLBACK (on_handle_decrease_brightness), NULL);
+	g_signal_connect (interface, "handle-get-temperature", G_CALLBACK (on_handle_get_temperature), NULL);
+        g_signal_connect (interface, "handle-set-temperature", G_CALLBACK (on_handle_set_temperature), NULL);
+        g_signal_connect (interface, "handle-increase-temperature", G_CALLBACK (on_handle_increase_temperature), NULL);
+        g_signal_connect (interface, "handle-decrease-temperature", G_CALLBACK (on_handle_decrease_temperature), NULL);
 	error = NULL;
-	!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (interface), connection, "/de/mherzberg/wlrbrightness", &error);
+	!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (interface), connection, "/net/zoidplex/wlr_gamma_service", &error);
 }
 
 int main(int argc, char *argv[]) {
@@ -253,7 +285,7 @@ int main(int argc, char *argv[]) {
 	GMainLoop *loop;
 	loop = g_main_loop_new (NULL, FALSE);
 
-	g_bus_own_name(G_BUS_TYPE_SESSION, "de.mherzberg", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
+	g_bus_own_name(G_BUS_TYPE_SESSION, "net.zoidplex", G_BUS_NAME_OWNER_FLAGS_NONE, NULL,
 				on_name_acquired, NULL, NULL, NULL);
 
 	g_main_loop_run (loop);
