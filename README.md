@@ -40,6 +40,8 @@ If you want to install wlr-gamma-service, you can use the systemd service:
 
 ## Usage
 
+Direct dbus commands are meant more for developers than end-users. If you're an end-user, please look at [gammactl](https://github.com/berzoidberg/gammactl), which is simple python wrapper around the published dbus interface.
+
 Start the daemon:
 
     wlr-gamma-service
