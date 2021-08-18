@@ -50,11 +50,11 @@ wlr-gamma-service is a Wayland-client and therefore needs to keep running. The
 brightness and temperature will reset to the defaults on exit. To control wlr-gamma-service, use any
 dbus utility, e.g.:
 
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.get_brightness
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.set_brightness 0.7
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.increase_brightness 0.1
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.decrease_brightness 0.1
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.get_temperature
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.set_temperature 4000
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.increase_temperature 100
-    gdbus call -e -d net.zoidplex -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.decrease_tempeature 100
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.brightness.get
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.brightness.set 0.7
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.brightness.increase 0.1
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.brightness.decrease 0.1
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.temperature.get
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.set_temperature.set 4000
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.temperature.increase 100
+    gdbus call -e -d net.zoidplex.wlr_gamma_service -o /net/zoidplex/wlr_gamma_service -m net.zoidplex.wlr_gamma_service.temperature.decrease 100
