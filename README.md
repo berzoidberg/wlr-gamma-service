@@ -11,6 +11,10 @@ of your screen and therefore supports both screens with and without backlight
 
 ## Installation
 
+### Arch (AUR)
+
+Use your favorite method to install wlr-gamma-service-git.
+
 ### From Source
 
 Dependencies:
