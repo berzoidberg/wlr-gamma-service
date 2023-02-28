@@ -192,6 +192,15 @@ set_gamma(double new_brightness, int new_temp)
 	wl_display_flush(display);
 	current_brightness = new_brightness;
 	current_temp = new_temp;
+
+	// Closing unnecessary shared memory files
+	wl_list_for_each(output, &outputs, link) {
+		if (output->table_fd >= 0) {
+			munmap(output->table, output->ramp_size * 3 * sizeof(uint16_t));
+			close(output->table_fd);
+			fprintf(stdout, "\ttable closed\n");
+		}
+	}
 }
 
 static gboolean
